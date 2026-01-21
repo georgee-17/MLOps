@@ -1,21 +1,35 @@
-from typing import Union
+from pathlib import Path
+
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import FileResponse
 
 app = FastAPI()
 
-def validate_item(surface_area: int, price: float):
-    if surface_area < 0:
-        raise HTTPException(status_code=400, detail="Surface area cannot be negative")
-    if price < 0:
-        raise HTTPException(status_code=400, detail="Price cannot be negative")
 
-@app.get("/{surface_area}")
-def read_item(surface_area: int, name: str, price: float):
-    validate_item(surface_area, price)
-    
+def scoring(apartment_id: int, surface_area: int) -> int:
+    return apartment_id * surface_area
+
+
+@app.get("/", response_class=FileResponse)
+def show_form():
+    html_path = Path(__file__).parent / "score.html"
+    return FileResponse(html_path)
+
+
+def validate_inputs(apartment_id: int, surface_area: int) -> None:
+    if apartment_id < 0:
+        raise HTTPException(status_code=400, detail="apartment_id must be non-negative")
+    if surface_area < 0:
+        raise HTTPException(status_code=400, detail="surface_area must be non-negative")
+
+
+@app.get("/score")
+def score(apartment_id: int, surface_area: int):
+    validate_inputs(apartment_id, surface_area)
+    score_value = scoring(apartment_id, surface_area)
     return {
+        "apartment_id": apartment_id,
         "surface_area": surface_area,
-        "name": name,
-        "price_euros": price
+        "score": score_value,
     }
 

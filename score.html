@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Score Calculator</title>
+  <style>
+    body { font-family: Georgia, "Times New Roman", serif; margin: 32px; }
+    h1 { font-size: 48px; margin-bottom: 32px; }
+    label { display: block; font-size: 28px; margin: 24px 0 8px; }
+    input { width: 420px; font-size: 28px; padding: 10px; }
+    button { margin-top: 24px; padding: 10px 16px; font-size: 24px; cursor: pointer; }
+    #result { margin-top: 24px; font-size: 24px; }
+  </style>
+</head>
+<body>
+  <h1>Score Calculator</h1>
+  <form id="score-form">
+    <label for="apartment_id">Apartment ID:</label>
+    <input id="apartment_id" name="apartment_id" type="number" min="0" required>
+
+    <label for="surface_area">Surface Area (m²):</label>
+    <input id="surface_area" name="surface_area" type="number" min="0" required>
+
+    <button type="submit">Get score</button>
+  </form>
+  <div id="result"></div>
+
+  <script>
+    const form = document.getElementById('score-form');
+    const result = document.getElementById('result');
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const apartmentId = parseInt(document.getElementById('apartment_id').value, 10);
+      const surfaceArea = parseInt(document.getElementById('surface_area').value, 10);
+
+      if (Number.isNaN(apartmentId) || Number.isNaN(surfaceArea)) {
+        result.textContent = 'Please enter valid numbers for both fields.';
+        return;
+      }
+
+      try {
+        const response = await fetch(`/score?apartment_id=${apartmentId}&surface_area=${surfaceArea}`);
+        if (!response.ok) {
+          const error = await response.text();
+          result.textContent = `Error: ${error}`;
+          return;
+        }
+        const data = await response.json();
+        result.textContent = `Score: ${data.score} (apartment ${data.apartment_id} x ${data.surface_area} m²)`;
+      } catch (err) {
+        result.textContent = 'Request failed. Is the API running?';
+      }
+    });
+  </script>
+</body>
+</html>
